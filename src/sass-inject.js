@@ -33,24 +33,21 @@ const scssFetch = load => {
     urlBase = load.address;
 
     if (urlBase.indexOf('file://') > -1) {
-        return new Promise((resolve, reject) => {
-            let url = urlBase.slice('file://'.length);
-            fs.readFile(url, 'utf8', (err, data) => {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(data);
-                }
-            });
-        }).then(compile);
+      return new Promise((resolve, reject) => {
+        const fileUrl = urlBase.slice('file://'.length);
+        fs.readFile(fileUrl, 'utf8', (err, data) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(data);
+          }
+        });
+      }).then(compile);
     }
-    else {
-        // fetch initial scss file
-        return fetch(urlBase)
-        .then(response => response.text())
-        .then(compile);
-    }
-};
+    // fetch initial scss file
+    return fetch(urlBase)
+    .then(response => response.text())
+    .then(compile);
+  };
 
 export default scssFetch;
