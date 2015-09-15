@@ -1,47 +1,47 @@
-var url = require('url');
-var fs = require('fs');
-var sass = require('sass.js');
+const url = require('url');
+const fs = require('fs');
+const sass = require('sass.js');
 
-var cssInject = "(function(c){var d=document,a='appendChild',i='styleSheet',s=d.createElement('style');s.type='text/css';d.getElementsByTagName('head')[0][a](s);s[i]?s[i].cssText=c:s[a](d.createTextNode(c));})";
+const cssInject = "(function(c){var d=document,a='appendChild',i='styleSheet',s=d.createElement('style');s.type='text/css';d.getElementsByTagName('head')[0][a](s);s[i]?s[i].cssText=c:s[a](d.createTextNode(c));})";
 
-var urlBase;
+let urlBase;
 
 function escape(source) {
   return source
     .replace(/(["\\])/g, '\\$1')
-    .replace(/[\f]/g, "\\f")
-    .replace(/[\b]/g, "\\b")
-    .replace(/[\n]/g, "\\n")
-    .replace(/[\t]/g, "\\t")
-    .replace(/[\r]/g, "\\r")
-    .replace(/[\u2028]/g, "\\u2028")
-    .replace(/[\u2029]/g, "\\u2029");
+    .replace(/[\f]/g, '\\f')
+    .replace(/[\b]/g, '\\b')
+    .replace(/[\n]/g, '\\n')
+    .replace(/[\t]/g, '\\t')
+    .replace(/[\r]/g, '\\r')
+    .replace(/[\u2028]/g, '\\u2028')
+    .replace(/[\u2029]/g, '\\u2029');
 }
 
 // intercept file loading requests (@import directive) from libsass
 sass.importer(function(request, done) {
-  var fullUrl = url.resolve(urlBase, request.current + '.scss');
-  var readUrl = url.parse(fullUrl).path;
+  const fullUrl = url.resolve(urlBase, request.current + '.scss');
+  const readUrl = url.parse(fullUrl).path;
   fs.readFile(readUrl, {encoding: 'UTF-8'}, function(err, data) {
     done({ content: data });
   });
 });
 
-module.exports = function bundle(loads, opts) {
+module.exports = function bundle(loads) {
   return new Promise(function(resolve, reject) {
     loads.forEach(function(load) {
       // TODO Support different load addresses
       urlBase = load.address;
     });
-    var stubDefines = loads.map(function(load) {
+    const stubDefines = loads.map(function(load) {
       return "System\.register('" + load.name + "', [], false, function() {});";
     }).join('\n');
-    var scss = loads.map(function(load) {
+    const scss = loads.map(function(load) {
       return load.source;
     }).reduce(function(sourceA, sourceB) {
       return sourceA + sourceB;
     });
-    var options = {
+    const options = {
       style: sass.style.compressed,
     };
     sass.compile(scss, options, function(result) {
